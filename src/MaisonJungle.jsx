@@ -4,8 +4,6 @@ import logo from './assets/leaf+1.png';
 import { plantList } from './plantList';
 import Sun from './assets/sun.svg'; 
 import Water from './assets/water.svg';
-    
-
 
 // Composant Description pour afficher un message de description
 function Description() {
@@ -14,7 +12,7 @@ function Description() {
     );
 }
 
-// Composant Cart pour afficher les paniers et les prix avec utilisation de useState qui permet de mettre à jour le panier de le hidden ou pas le tout avec un boutton
+// Composant Cart pour afficher les paniers et les prix avec utilisation de useState qui permet de mettre à jour le panier de le hidden ou pas le tout avec un bouton
 function Cart({ cart, updateCart }) {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -24,9 +22,10 @@ function Cart({ cart, updateCart }) {
         0
     );
 
-	useEffect(() => {
-	    alert(`J'aurai ${total}€ à payer 💸`)
-	}, [total])
+    // Utilisation de useEffect pour changer l'onglet de mon navigateur
+    useEffect(() => {
+        document.title = `LMJ: ${total}€ d'achats`;
+    }, [total]);
 
     return isOpen ? (
         <div className='lmj-cart'>
@@ -88,92 +87,75 @@ function Header() {
     );
 }
 
-// Fonction CareScale pour afficher les icones de lumière et d'arrosage en fonction de la valeur de scaleValue
+// Fonction CareScale pour afficher les icônes de lumière et d'arrosage en fonction de la valeur de scaleValue
 function CareScale({ scaleValue, careType }) {
-	const range = [1, 2, 3]
-	const scaleType =
-		careType === 'light' ? (
-			<img src={Sun} alt='sun-icon' />
-		) : (
-			<img src={Water} alt='water-icon' />
-		)
+    const range = [1, 2, 3];
+    const scaleType =
+        careType === 'light' ? (
+            <img src={Sun} alt='sun-icon' />
+        ) : (
+            <img src={Water} alt='water-icon' />
+        );
 
-	return (
-		<div
-			onClick={() =>
-				alert(
-					`Cette plante requiert ${quantityLabel[scaleValue]} ${
-						careType === 'light' ? 'de lumière' : "d'arrosage"
-					}`
-				)
-			}
-		>
-			{range.map((rangeElem) =>
-				scaleValue >= rangeElem ? (
-					<span key={rangeElem.toString()}>{scaleType}</span>
-				) : null
-			)}
-		</div>
-	)
+    return (
+        <div
+            onClick={() =>
+                alert(
+                    `Cette plante requiert ${['peu', 'modéré', 'beaucoup'][scaleValue - 1]} ${
+                        careType === 'light' ? 'de lumière' : "d'arrosage"
+                    }`
+                )
+            }
+        >
+            {range.map((rangeElem) =>
+                scaleValue >= rangeElem ? (
+                    <span key={rangeElem.toString()}>{scaleType}</span>
+                ) : null
+            )}
+        </div>
+    );
 }
 
 // Fonction handleClick pour afficher une alerte lorsqu'on clique sur une plante
 function handleClick(plantName) {
-	alert(`Vous voulez acheter 1 ${plantName}? Très bon choix 🌱✨`)
+    alert(`Vous voulez acheter 1 ${plantName}? Très bon choix 🌱✨`);
 }
 
 //Composant PlantItem pour afficher les plantes et les caractéristiques
 function PlantItem({ cover, name, water, light }) {
-	return (
-		<li className='lmj-plant-item' onClick={() => handleClick(name)}>
-			<img className='lmj-plant-item-cover' src={cover} alt={`${name} cover`} />
-			{name}
-			<div className="lmj-plant-item-care">
-				<CareScale careType='water' scaleValue={water} />
-				<CareScale careType='light' scaleValue={light} />
-			</div>
-		</li>
-	)
+    return (
+        <li className='lmj-plant-item' onClick={() => handleClick(name)}>
+            <img className='lmj-plant-item-cover' src={cover} alt={`${name} cover`} />
+            {name}
+            <div className="lmj-plant-item-care">
+                <CareScale careType='water' scaleValue={water} />
+                <CareScale careType='light' scaleValue={light} />
+            </div>
+        </li>
+    );
 }
 
-
 // Composant ShoppingList pour afficher les plantes et les caractéristiques
+function ShoppingList({ cart, updateCart, plants }) {
+    function addToCart(name, price) {
+        const currentPlantAdded = cart.find((plant) => plant.name === name);
+        if (currentPlantAdded) {
+            const cartFilteredCurrentPlant = cart.filter(
+                (plant) => plant.name !== name
+            );
+            updateCart([
+                ...cartFilteredCurrentPlant,
+                { name, price, amount: currentPlantAdded.amount + 1 }
+            ]);
+        } else {
+            updateCart([...cart, { name, price, amount: 1 }]);
+        }
+    }
 
-function ShoppingList({ cart, updateCart }) {
-    // La ligne qui générait les catégories uniques a été supprimée.
-//     // const categories = plants.reduce(
-//     //     (acc, plant) => acc.includes(plant.category) ? acc : acc.concat(plant.category),
-//     //     []
-//     // );
-
-	function addToCart(name, price) {
-		const currentPlantAdded = cart.find((plant) => plant.name === name);
-	    if (currentPlantAdded) {
-			const cartFilteredCurrentPlant = cart.filter(
-			(plant) => plant.name !== name
-			);
-			updateCart([
-				...cartFilteredCurrentPlant,
-				{ name, price, amount: currentPlantAdded.amount + 1 }
-			]);
-		} else {
-			updateCart([...cart, { name, price, amount: 1 }]);
-		}
-	}
-    
     return (
         <div className="lmj-shopping-list">
-
-            {/* La liste des catégories a été supprimée ici. */}
-			{/* affichage de la liste de categorie */}
-             {/* <ul>
-               {categories.map((cat) => (
-                   <li key={cat}>{cat}</li>
-               ))}
-           </ul> */}
-
             <ul className="lmj-plant-list">
-                {plantList.map(({ id, cover, name, water, light, price }) => (
+                {plants.map(({ id, cover, name, water, light, price }) => (
                     <div key={id}>
                         <PlantItem
                             cover={cover}
@@ -191,34 +173,7 @@ function ShoppingList({ cart, updateCart }) {
     );
 }
 
-
-
-
-
-// Composant CategorieList pour afficher les catégories de plantes et les afficher
-// function CategorieList() {
-//     const catList = [];
-//     plantList.forEach((plant) => {
-//         if (!catList.includes(plant.category)) {
-//             catList.push(plant.category);
-//         }
-//     });
-
-//     return (
-//         <div>
-//             <h2>Les catégories de plantes</h2>
-//             <ul>
-//                 {catList.map((category, index) => (
-//                     <li key={`${category}-${index}`}>
-//                         {category}
-//                     </li>
-//                 ))}
-//             </ul>
-//         </div>
-//     );
-// }
-
-//pour afficher categorie des palntes et que toutes les plantes soient dans leur differentes categories
+// Composant Categories pour afficher les catégories de plantes
 function Categories({ setActiveCategory, categories, activeCategory }) {
     // Supprimer les doublons de catégories
     const uniqueCategories = [...new Set(categories)];
@@ -242,18 +197,17 @@ function Categories({ setActiveCategory, categories, activeCategory }) {
     );
 }
 
-
 // Composant Footer pour le formulaire et les mentions légales
 function Footer(){
-    const [inputValue, setInputValue] = useState('')
+    const [inputValue, setInputValue] = useState('');
 
     function handleInput(e) {
-        setInputValue(e.target.value)
+        setInputValue(e.target.value);
     }
 
     function handleBlur() {
         if (!inputValue.includes('@')) {
-            alert("Attention, il n'y a pas d'@, ceci n'est pas une adresse valide 😥")
+            alert("Attention, il n'y a pas d'@, ceci n'est pas une adresse valide 😥");
         }
     }
 
@@ -270,15 +224,18 @@ function Footer(){
                 onBlur={handleBlur}
             />
         </footer>
-    )
+    );
 }
 
-
-// Composant Banner pour regrouper les composants et les afficher
- 
+// Composant principal Banner pour regrouper les composants et les afficher
 export default function Banner() {
-    const [cart, updateCart] = useState([]);
-    const [activeCategory, setActiveCategory] = useState('');  // État pour la catégorie active
+    const [activeCategory, setActiveCategory] = useState('');  // Déclarez activeCategory ici
+    const savedCart = localStorage.getItem('cart');
+    const [cart, updateCart] = useState(savedCart ? JSON.parse(savedCart) : []);
+
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }, [cart]);
 
     // Filtrage des plantes en fonction de la catégorie active
     const filteredPlants = activeCategory
@@ -288,7 +245,7 @@ export default function Banner() {
     return (
         <div>
             <Header />
-			<Categories 
+            <Categories 
                 setActiveCategory={setActiveCategory} 
                 categories={plantList.map(plant => plant.category)} 
                 activeCategory={activeCategory} 
@@ -303,4 +260,3 @@ export default function Banner() {
         </div>
     );
 }
-
